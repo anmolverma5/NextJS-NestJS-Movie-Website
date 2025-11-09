@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Movie List - Clone</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <!-- Sign In -->
+    <section class="hero hero--auth" id="sign-in">
+      <h1 class="hero__title">Sign in</h1>
+      <form class="form form--auth" novalidate>
+        <input class="input" type="email" placeholder="Email" />
+        <input class="input" type="password" placeholder="Password" />
+        <label class="remember"><input type="checkbox" /> Remember me</label>
+        <button class="btn btn--primary">Login</button>
+      </form>
+      <div class="wave wave--bottom"></div>
+    </section>
+
+    <!-- Empty list -->
+    <section class="hero hero--empty" id="empty">
+      <h2 class="hero__title">Your movie list is empty</h2>
+      <button class="btn btn--primary btn--md">Add a new movie</button>
+      <div class="wave wave--bottom"></div>
+    </section>
+
+    <!-- Grid -->
+    <main class="container">
+      <header class="topbar">
+        <h2 class="page-title">My movies <span class="plus">+</span></h2>
+        <a class="logout" href="#">Logout ↗</a>
+      </header>
+
+      <section class="grid">
+        <!-- Repeated card -->
+        {% for i in range(8) %}
+        <article class="card">
+          <div class="card__img" style="background-image:url('https://picsum.photos/seed/{{i}}/600/900');"></div>
+          <div class="card__meta">
+            <h3>Movie 1</h3>
+            <time>2021</time>
+          </div>
+        </article>
+        {% endfor %}
+      </section>
+
+      <nav class="pagination">
+        <button class="pager">Prev</button>
+        <button class="pager pager--active">1</button>
+        <button class="pager">2</button>
+        <button class="pager">Next</button>
+      </nav>
+    </main>
+
+    <!-- Create / Edit forms -->
+    <section class="form-page">
+      <h2 class="page-heading">Create a new movie</h2>
+      <div class="form-grid">
+        <div class="dropzone">Drop an image here</div>
+        <form class="form">
+          <input class="input" placeholder="Title" />
+          <input class="input" placeholder="Publishing year" />
+          <div class="form-actions">
+            <button class="btn btn--ghost">Cancel</button>
+            <button class="btn btn--primary">Submit</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <div class="wave wave--bottom large"></div>
+  </div>
+</body>
+</html>

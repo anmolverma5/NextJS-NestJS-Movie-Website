@@ -1,0 +1,87 @@
+@import "tailwindcss";
+
+:root {
+  --bg-900: #06343a;
+  --bg-800: #093e46;
+  --panel: #0f4b51;
+  --input-bg: rgba(255, 255, 255, 0.03);
+  --muted: rgba(255, 255, 255, 0.18);
+  --accent: #33d583;
+  --white: #ffffff;
+  --radius: 10px;
+  --rounded-lg: 14px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "Montserrat", "Helvetica Neue", Arial, sans-serif;
+  background: var(--bg-900);
+  color: var(--white);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.25;
+}
+
+.app {
+  position: relative;
+  min-height: 100vh;
+}
+
+/* Wave decoration */
+.wave {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -2px;
+  height: 120px;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.02) 0%, transparent 40%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.12));
+}
+
+.wave--bottom {
+  transform: translateY(4px);
+  opacity: 0.95;
+  height: 140px;
+  background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.02) 0%, transparent 40%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.12));
+}
+
+.wave.large {
+  height: 220px;
+  bottom: -40px;
+}
+
+/* Footer Wave SVG */
+.footer-wave {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  overflow: hidden;
+  line-height: 0;
+  background: #06343a; /* Match your app background color */
+  z-index: 0;
+}
+
+.footer-wave__svg {
+  display: block;
+  width: 100%;
+  height: 160px; /* Adjust height as needed */
+}
+
+.footer-wave svg path {
+  transition: all 0.3s ease;
+  fill: #06343a; /* Match your app background color */
+}
