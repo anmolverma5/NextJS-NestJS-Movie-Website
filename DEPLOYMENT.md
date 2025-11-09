@@ -1,254 +1,307 @@
-# Deployment Guide
+# AWS EC2 Deployment Guide
 
-This guide provides detailed instructions for deploying the Movie Database application to AWS.
+This guide will help you deploy the Next.js + NestJS Movie Website to AWS EC2.
 
 ## Prerequisites
 
-- AWS Account
-- AWS CLI installed and configured
-- Docker (for containerized deployment)
-- Node.js 20+ (for direct deployment)
+- AWS EC2 instance running (Ubuntu/Amazon Linux)
+- Node.js 20+ installed
+- PM2 installed globally
+- Nginx installed
+- Git installed
+- Domain name (optional, for production)
 
-## Backend Deployment
+## Step 1: Connect to Your EC2 Instance
 
-### Option 1: AWS Elastic Beanstalk (Recommended)
+```bash
+ssh ec2-user@your-ec2-ip
+# or
+ssh ubuntu@your-ec2-ip
+```
 
-1. **Install EB CLI:**
-   ```bash
-   pip install awsebcli
-   ```
+## Step 2: Navigate to Project Directory
 
-2. **Initialize EB:**
-   ```bash
-   cd backend
-   eb init -p node.js movie-backend
-   ```
+```bash
+cd /var/www/html/NextJS-NestJS-Movie-Website
+# or wherever your project is located
+```
 
-3. **Create environment:**
-   ```bash
-   eb create movie-backend-env
-   ```
+## Step 3: Install Dependencies
 
-4. **Set environment variables:**
-   ```bash
-   eb setenv JWT_SECRET=your-secret-key FRONTEND_URL=https://your-frontend-url.com
-   ```
+```bash
+# Install all dependencies
+npm run install:all
 
-5. **Deploy:**
-   ```bash
-   eb deploy
-   ```
+# Or manually:
+npm install
+cd frontend && npm install && cd ..
+cd backend && npm install && cd ..
+```
 
-### Option 2: AWS ECS with Docker
+## Step 4: Set Up Environment Variables
 
-1. **Build and push Docker image:**
-   ```bash
-   cd backend
-   docker build -t movie-backend .
-   docker tag movie-backend:latest <your-ecr-url>/movie-backend:latest
-   docker push <your-ecr-url>/movie-backend:latest
-   ```
+### Backend Environment Variables
 
-2. **Create ECS Task Definition:**
-   - Use the pushed image
-   - Set environment variables
-   - Configure port mapping (3001)
+Create `backend/.env`:
 
-3. **Create ECS Service:**
-   - Use the task definition
-   - Configure load balancer
-   - Set desired count
+```bash
+cd backend
+nano .env
+```
 
-### Option 3: EC2 Instance
+Add the following:
 
-1. **Launch EC2 instance:**
-   - Choose Ubuntu 22.04 LTS
-   - Configure security group (port 3001)
+```env
+PORT=3001
+NODE_ENV=production
+FRONTEND_URL=http://your-domain.com
+# or use your EC2 public IP
+# FRONTEND_URL=http://your-ec2-ip
 
-2. **SSH into instance:**
-   ```bash
-   ssh -i your-key.pem ubuntu@your-ec2-ip
-   ```
+# JWT Secret (generate a strong secret)
+JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
 
-3. **Install Node.js:**
-   ```bash
-   curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-   sudo apt-get install -y nodejs
-   ```
+# CORS
+CORS_ORIGIN=http://your-domain.com
+```
 
-4. **Clone and setup:**
-   ```bash
-   git clone <your-repo-url>
-   cd "NextJS + NestJS Movie Website/backend"
-   npm install
-   npm run build
-   ```
+### Frontend Environment Variables
 
-5. **Install PM2:**
-   ```bash
-   sudo npm install -g pm2
-   ```
+Create `frontend/.env.local`:
 
-6. **Start application:**
-   ```bash
-   pm2 start dist/main.js --name movie-backend
-   pm2 save
-   pm2 startup
-   ```
+```bash
+cd frontend
+nano .env.local
+```
 
-7. **Configure Nginx (optional):**
-   ```nginx
-   server {
-       listen 80;
-       server_name your-domain.com;
+Add the following:
 
-       location / {
-           proxy_pass http://localhost:3001;
-           proxy_http_version 1.1;
-           proxy_set_header Upgrade $http_upgrade;
-           proxy_set_header Connection 'upgrade';
-           proxy_set_header Host $host;
-           proxy_cache_bypass $http_upgrade;
-       }
-   }
-   ```
+```env
+NEXT_PUBLIC_API_URL=http://your-domain.com:3001
+# or use your EC2 public IP
+# NEXT_PUBLIC_API_URL=http://your-ec2-ip:3001
 
-## Frontend Deployment
+NEXT_PUBLIC_UPLOAD_URL=http://your-domain.com:3001
+# or use your EC2 public IP
+# NEXT_PUBLIC_UPLOAD_URL=http://your-ec2-ip:3001
+```
 
-### Option 1: Vercel (Recommended)
+## Step 5: Build the Applications
 
-1. **Install Vercel CLI:**
-   ```bash
-   npm install -g vercel
-   ```
+```bash
+# From project root
+npm run build
 
-2. **Deploy:**
-   ```bash
-   cd frontend
-   vercel
-   ```
+# This will:
+# 1. Build backend (creates dist folder)
+# 2. Build frontend (creates .next folder)
+```
 
-3. **Set environment variables:**
-   - `NEXT_PUBLIC_API_URL`: Your backend URL
+## Step 6: Create Uploads Directory
 
-### Option 2: AWS Amplify
+```bash
+# Create uploads directory for backend
+mkdir -p backend/uploads
+chmod 755 backend/uploads
+```
 
-1. **Connect repository:**
-   - Go to AWS Amplify Console
-   - Connect your Git repository
+## Step 7: Set Up PM2
 
-2. **Configure build settings:**
-   ```yaml
-   version: 1
-   frontend:
-     phases:
-       preBuild:
-         commands:
-           - npm install
-       build:
-         commands:
-           - npm run build
-     artifacts:
-       baseDirectory: .next
-       files:
-         - '**/*'
-     cache:
-       paths:
-         - node_modules/**/*
-   ```
+### Create PM2 Ecosystem File
 
-3. **Set environment variables:**
-   - `NEXT_PUBLIC_API_URL`: Your backend URL
+Create `ecosystem.config.js` in the project root:
 
-### Option 3: S3 + CloudFront
+```bash
+nano ecosystem.config.js
+```
 
-1. **Build for static export:**
-   ```bash
-   cd frontend
-   npm run build
-   ```
+Copy the content from the provided `ecosystem.config.js` file.
 
-2. **Export static files:**
-   ```bash
-   npm run export
-   ```
+### Start Applications with PM2
 
-3. **Upload to S3:**
-   ```bash
-   aws s3 sync out/ s3://your-bucket-name --delete
-   ```
+```bash
+# Start both applications
+pm2 start ecosystem.config.js
 
-4. **Create CloudFront distribution:**
-   - Origin: S3 bucket
-   - Default root object: index.html
-   - Configure caching
+# Save PM2 configuration
+pm2 save
 
-5. **Set up custom domain (optional):**
-   - Add CNAME record
-   - Configure SSL certificate
+# Set PM2 to start on system reboot
+pm2 startup
+# Follow the instructions it provides
+```
 
-## Environment Variables
+### PM2 Commands
 
-### Backend
-- `PORT`: Server port (default: 3001)
-- `JWT_SECRET`: Secret key for JWT tokens
-- `FRONTEND_URL`: Frontend URL for CORS
+```bash
+# Check status
+pm2 status
 
-### Frontend
-- `NEXT_PUBLIC_API_URL`: Backend API URL
+# View logs
+pm2 logs
 
-## Database Setup (Future)
+# Restart applications
+pm2 restart all
 
-For production, consider using:
-- **PostgreSQL** with RDS
-- **MongoDB** with DocumentDB
-- **DynamoDB** for serverless
+# Stop applications
+pm2 stop all
 
-## Monitoring
+# Delete applications
+pm2 delete all
+```
 
-### CloudWatch
-- Set up log groups
-- Configure alarms
-- Monitor metrics
+## Step 8: Configure Nginx
 
-### Application Monitoring
-- Consider using Sentry for error tracking
-- Use AWS X-Ray for distributed tracing
+### Install Nginx (if not installed)
 
-## Security Best Practices
+```bash
+# Ubuntu/Debian
+sudo apt update
+sudo apt install nginx -y
 
-1. **Use AWS Secrets Manager** for sensitive data
-2. **Enable HTTPS** with SSL certificates
-3. **Configure WAF** for API protection
-4. **Use IAM roles** instead of access keys
-5. **Enable CloudTrail** for audit logs
-6. **Regular security updates** for dependencies
+# Amazon Linux
+sudo yum install nginx -y
+```
 
-## Cost Optimization
+### Create Nginx Configuration
 
-1. **Use reserved instances** for predictable workloads
-2. **Enable auto-scaling** for variable traffic
-3. **Use CloudFront caching** to reduce backend load
-4. **Monitor and optimize** resource usage
+```bash
+sudo nano /etc/nginx/sites-available/movie-website
+# or for Amazon Linux:
+sudo nano /etc/nginx/conf.d/movie-website.conf
+```
+
+Copy the content from the provided `nginx.conf` file.
+
+### Enable the Site
+
+```bash
+# Ubuntu/Debian
+sudo ln -s /etc/nginx/sites-available/movie-website /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl restart nginx
+
+# Amazon Linux
+sudo nginx -t
+sudo systemctl restart nginx
+```
+
+## Step 9: Configure Firewall
+
+```bash
+# Allow HTTP and HTTPS
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+
+# Allow backend port (if not using nginx proxy)
+sudo ufw allow 3001/tcp
+
+# Enable firewall
+sudo ufw enable
+```
+
+## Step 10: Configure AWS Security Groups
+
+In AWS Console:
+1. Go to EC2 → Security Groups
+2. Select your instance's security group
+3. Add inbound rules:
+   - HTTP (port 80) from 0.0.0.0/0
+   - HTTPS (port 443) from 0.0.0.0/0
+   - Custom TCP (port 3001) from 0.0.0.0/0 (if needed)
+
+## Step 11: Test the Deployment
+
+1. **Backend API**: `http://your-domain.com:3001/api` (Swagger docs)
+2. **Frontend**: `http://your-domain.com`
+3. **Health Check**: `http://your-domain.com/api/health` (if implemented)
+
+## Step 12: Set Up SSL (Optional but Recommended)
+
+### Using Let's Encrypt (Free SSL)
+
+```bash
+# Install Certbot
+sudo apt install certbot python3-certbot-nginx -y
+# or for Amazon Linux:
+sudo yum install certbot python3-certbot-nginx -y
+
+# Get SSL certificate
+sudo certbot --nginx -d your-domain.com
+
+# Auto-renewal (already set up by certbot)
+sudo certbot renew --dry-run
+```
 
 ## Troubleshooting
 
-### Backend Issues
-- Check CloudWatch logs
-- Verify environment variables
-- Test database connectivity
-- Check security group rules
+### Check PM2 Logs
 
-### Frontend Issues
-- Verify API URL configuration
-- Check CORS settings
-- Review browser console errors
-- Test API endpoints directly
+```bash
+pm2 logs movie-backend
+pm2 logs movie-frontend
+```
+
+### Check Nginx Logs
+
+```bash
+sudo tail -f /var/log/nginx/error.log
+sudo tail -f /var/log/nginx/access.log
+```
+
+### Restart Services
+
+```bash
+# Restart PM2
+pm2 restart all
+
+# Restart Nginx
+sudo systemctl restart nginx
+```
+
+### Check Port Usage
+
+```bash
+# Check if ports are in use
+sudo netstat -tulpn | grep :3001
+sudo netstat -tulpn | grep :3000
+```
+
+## Maintenance
+
+### Update the Application
+
+```bash
+cd /var/www/html/NextJS-NestJS-Movie-Website
+git pull origin main
+npm run install:all
+npm run build
+pm2 restart all
+```
+
+### Backup
+
+```bash
+# Backup uploads directory
+tar -czf uploads-backup-$(date +%Y%m%d).tar.gz backend/uploads/
+```
+
+## Production Checklist
+
+- [ ] Environment variables configured
+- [ ] JWT_SECRET is strong and unique
+- [ ] CORS configured correctly
+- [ ] Nginx configured and running
+- [ ] PM2 configured and running
+- [ ] Firewall configured
+- [ ] SSL certificate installed (recommended)
+- [ ] Domain name configured
+- [ ] Backups scheduled
+- [ ] Monitoring set up (optional)
 
 ## Support
 
-For deployment issues, refer to:
-- AWS Documentation
-- Next.js Deployment Guide
-- NestJS Deployment Guide
-
+For issues, check:
+1. PM2 logs: `pm2 logs`
+2. Nginx logs: `sudo tail -f /var/log/nginx/error.log`
+3. Application logs in respective directories
