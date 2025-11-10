@@ -17,10 +17,7 @@ import { useI18n } from '@/lib/i18n';
 const createMovieSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   publishingYear: z
-    .number({
-      required_error: 'Publishing year is required',
-      invalid_type_error: 'Publishing year must be a number',
-    })
+    .number()
     .int('Publishing year must be a whole number (e.g., 1999, 2000)')
     .min(1000, 'Publishing year must be between 1000 and 2035')
     .max(2035, 'Publishing year must be between 1000 and 2035'),

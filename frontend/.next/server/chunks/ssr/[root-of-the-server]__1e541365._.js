@@ -1,0 +1,3 @@
+module.exports=[42325,a=>{a.v({className:"montserrat_857ffce7-module__tvlSQW__className",variable:"montserrat_857ffce7-module__tvlSQW__variable"})},44210,a=>{"use strict";var b=a.i(18332),c=a.i(42325);let d={className:c.default.className,style:{fontFamily:"'Montserrat', 'Montserrat Fallback'",fontStyle:"normal"}};function e({children:a}){return(0,b.jsx)("html",{lang:"en",children:(0,b.jsx)("body",{className:`${d.variable} antialiased`,children:(0,b.jsx)("div",{className:"app",children:a})})})}null!=c.default.variable&&(d.variable=c.default.variable),a.s(["default",()=>e,"metadata",0,{title:"Movie Database - Manage Your Movies",description:"A full-stack movie management application"}],44210)}];
+
+//# sourceMappingURL=%5Broot-of-the-server%5D__1e541365._.js.map

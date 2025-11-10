@@ -1,0 +1,4 @@
+{
+  "/movies/create/page": "app/movies/create/page.js",
+  "/movies/page": "app/movies/page.js"
+}
